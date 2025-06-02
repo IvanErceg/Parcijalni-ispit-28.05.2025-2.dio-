@@ -39,66 +39,115 @@ public class Main {
 
             switch (unos) {
                 case 1:
-
-                    try{
+                    try {
                         transaction = session.beginTransaction();
-                    // Unos novog polaznika
-                    System.out.print("Unesite ime polaznika: ");
-                    String ime = scanner.nextLine();
-                    System.out.print("Unesite prezime polaznika: ");
-                    String prezime = scanner.nextLine();
 
-                   Polaznik polaznik = new Polaznik();
-                    polaznik.setIme(ime);
-                    polaznik.setPrezime(prezime);
+                        // Unos novog polaznika
+                        System.out.print("Unesite ime polaznika: ");
+                        String ime = scanner.nextLine().trim();
+                        System.out.print("Unesite prezime polaznika: ");
+                        String prezime = scanner.nextLine().trim();
+                        if (ime.isEmpty()||prezime.isEmpty()) {
+                            System.out.println("Greška: ime  ili prezime ne smije biti prazno!");
+                            return;
+                        }
 
-                    session.save(polaznik);
+
+                        Polaznik polaznik = new Polaznik();
+                        polaznik.setIme(ime);
+                        polaznik.setPrezime(prezime);
+
+                        session.save(polaznik);
                         transaction.commit();
                         System.out.println("Polaznik dodan.");
-                    } catch (Exception e){
+
+                    } catch (Exception e) {
+                        if (transaction != null) transaction.rollback();
                         System.out.println("Greška prilikom dodavanja polaznika: " + e.getMessage());
                     }
                     break;
 
                 case 2:
-
-                    try{
+                    try {
                         transaction = session.beginTransaction();
-                    // Unos novog programa obrazovanja
-                    System.out.print("Unesite naziv programa: ");
-                    String nazivPrograma = scanner.nextLine();
-                    System.out.print("Unesite broj CSVET bodova: ");
-                    int bodovi = scanner.nextInt();
 
-                    ProgramObrazovanja program = new ProgramObrazovanja();
-                    program.setNaziv(nazivPrograma);
+                        // Unos novog programa obrazovanja
+                        System.out.print("Unesite naziv programa: ");
+                        String nazivPrograma = scanner.nextLine().trim();
+                        System.out.print("Unesite broj CSVET bodova: ");
+                        String bodoviInput = scanner.nextLine().trim();
+                        if (nazivPrograma.isEmpty()||bodoviInput.isEmpty()) {
+                            System.out.println("Greška: Naziv programa  ili broj CSVET bodova  ne smije biti prazan");
+                            return;
+                        }
+                        int bodovi;
+                        try {
+                            bodovi = Integer.parseInt(bodoviInput);
+                            if (bodovi <= 0) {
+                                System.out.println("Greška: Broj CSVET bodova mora biti veći od nule!");
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Greška: Broj CSVET bodova mora biti cijeli broj!");
+                            return;
+                        }
+
+                        ProgramObrazovanja program = new ProgramObrazovanja();
+                        program.setNaziv(nazivPrograma);
                         program.setCSvet(bodovi);
-                    session.save(program);
+
+                        session.save(program);
                         transaction.commit();
                         System.out.println("Program obrazovanja uspješno dodan.");
-            } catch (Exception e){
-                System.out.println("Greška prilikom dodavanja programa: " + e.getMessage());
-            }
+
+                    } catch (Exception e) {
+                        if (transaction != null) transaction.rollback();
+                        System.out.println("Greška prilikom dodavanja programa: " + e.getMessage());
+                    }
                     break;
 
                 case 3:
-
-
                     try {
                         transaction = session.beginTransaction();
 
                         // Unos podataka
                         System.out.print("Unesite ID polaznika: ");
-                        int idPolaznik = scanner.nextInt();
+                        String idPolaznikInput = scanner.nextLine();
+                        if (idPolaznikInput.isEmpty()) {
+                            System.out.println("Greška: ID polaznika ne može biti prazan!");
+                            return;
+                        }
+                           int idPolaznik;
+                        try {
+                             idPolaznik = Integer.parseInt(idPolaznikInput);
+                        } catch (NumberFormatException e) {
+                            System.out.println("Greška: ID polaznika mora biti broj!");
+                            return;
+                        }
+
+
                         System.out.print("Unesite ID programa: ");
-                        int idProgram = scanner.nextInt();
-                        scanner.nextLine();
+                        String idProgramInput = scanner.nextLine();
+                        if (idProgramInput.isEmpty()) {
+                            System.out.println("Greška: ID programa ne može biti prazan!");
+                            return;
+                        }
+
+                        int idProgram;
+                        try {
+                            idProgram = Integer.parseInt(idProgramInput);
+                        } catch (NumberFormatException e) {
+                            System.out.println("Greška: ID programa mora biti broj!");
+                            return;
+                        }
 
                         // Dohvati entitete po ID-ju
                         Polaznik p = session.get(Polaznik.class, idPolaznik);
                         ProgramObrazovanja po = session.get(ProgramObrazovanja.class, idProgram);
-
-
+                        if (p == null||po==null) {
+                            System.out.println("Polaznik ili program pod tim ID ne postoji ");
+                            return;
+                        }
 
                         // Kreiraj novi upis
                         Upis upis = new Upis();
@@ -108,7 +157,6 @@ public class Main {
                         // Spremi u bazu
                         session.save(upis);
                         transaction.commit();
-                        System.out.println("Entitet uspješno dodan");
                         System.out.println("Polaznik uspješno upisan na program.");
 
                     } catch (Exception e) {
@@ -120,13 +168,32 @@ public class Main {
 
                 case 4:
                     System.out.print("Unesite ID upisa koji želite ažurirati: ");
-                    int upisId = scanner.nextInt();
+                    String upisIdInput = scanner.nextLine();
+                    if (upisIdInput.isEmpty()) {
+                        System.out.println("Greška: ID upisa ne može biti prazan!");
+                        return;
+                    }
+                    int upisId;
+                    try {
+                        upisId = Integer.parseInt(upisIdInput);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Greška: ID upisa mora biti broj!");
+                        return;
+                    }
 
                     System.out.print("Unesite novi ID programa: ");
-                    int noviProgramId = scanner.nextInt();
-                    scanner.nextLine();
-
-
+                    String noviProgramIdInput = scanner.nextLine();
+                    if (noviProgramIdInput.isEmpty()) {
+                        System.out.println("Greška: ID programa ne može biti prazan!");
+                        return;
+                    }
+                    int noviProgramId;
+                    try {
+                        noviProgramId = Integer.parseInt(noviProgramIdInput);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Greška: ID programa mora biti broj!");
+                        return;
+                    }
 
                     try {
                         transaction = session.beginTransaction();
@@ -137,14 +204,13 @@ public class Main {
                             System.out.println("Upis s ID " + upisId + " ne postoji.");
                             break;
                         }
-
                         // Dohvati novi program obrazovanja
                         ProgramObrazovanja noviProgram = session.get(ProgramObrazovanja.class, noviProgramId);
+
                         if (noviProgram == null) {
                             System.out.println("Program s ID " + noviProgramId + " ne postoji.");
                             break;
                         }
-
                         // Ažuriraj upis
                         upis.setProgramObrazovanja(noviProgram);
                         session.update(upis);
@@ -159,21 +225,43 @@ public class Main {
                     break;
 
                 case 5:
-                    System.out.println("Polaznici i programi:");
+
+                    System.out.print("Unesite ID programa obrazovanja: ");
+                    String programIdInput = scanner.nextLine();
+                    if (programIdInput.isEmpty()) {
+                        System.out.println("Greška: ID programa ne može biti prazan!");
+                        break;
+                    }
+                    int programId;
+                    try {
+                        programId = Integer.parseInt(programIdInput);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Greška: ID programa mora biti broj!");
+                        break;
+                    }
+
+                    System.out.println("Polaznici na programu:");
                     System.out.printf("%-20s %-20s %-30s %-10s\n", "Ime", "Prezime", "Program", "CSVET");
                     System.out.println("-------------------------------------------------------------------------------");
-
                     try {
-                        // Dohvati sve upise
-                        List<Upis> upisi = session.createQuery("FROM Upis", Upis.class).list();
+                        // dohvati upis
+                        List<Upis> upisi = session.createQuery(
+                                        "FROM Upis u WHERE u.programObrazovanja.programObrazovanjaID = :programId",
+                                        Upis.class)
+                                .setParameter("programId", programId)
+                                .list();
 
-                        for (Upis upis : upisi) {
-                            String imePrint = upis.getPolaznik().getIme();
-                            String prezimePrint = upis.getPolaznik().getPrezime();
-                            String nazivPrograma = upis.getProgramObrazovanja().getNaziv();
-                            int csvet = upis.getProgramObrazovanja().getCSvet();
-
-                            System.out.printf("%-20s %-20s %-30s %-10d\n", imePrint, prezimePrint, nazivPrograma, csvet);
+                        if (upisi.isEmpty()) {
+                            System.out.println("Nema polaznika na ovom programu.");
+                        } else {
+                            for (Upis upis : upisi) {
+                                String imePrint = upis.getPolaznik().getIme();
+                                String prezimePrint = upis.getPolaznik().getPrezime();
+                                String nazivPrograma = upis.getProgramObrazovanja().getNaziv();
+                                int csvet = upis.getProgramObrazovanja().getCSvet();
+                                System.out.printf("%-20s %-20s %-30s %-10d\n",
+                                        imePrint, prezimePrint, nazivPrograma, csvet);
+                            }
                         }
                     } catch (Exception e) {
                         System.out.println("Greška prilikom dohvaćanja podataka: " + e.getMessage());
